@@ -8,11 +8,9 @@ contract Add {
         assembly {            
 
             let result := add(x, y)          
-        }
-
-        assembly {         
             mstore(0x11, result)                         
         }
+
         // But can be written to memory in one block        
         // and retrieved in another        
         assembly {            

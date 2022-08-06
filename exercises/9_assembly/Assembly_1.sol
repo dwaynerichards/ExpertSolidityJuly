@@ -10,8 +10,10 @@ contract Intro {
         assembly {            
             // stack variables are instantiated with 
             // let variable_name := VALUE            
-
             // instantiate stack variable that holds value of mol            
+            let copy := mol
+            mstore(0x00, copy)
+            return(0x00, 32)
             
 
             // To return it needs to be stored in memory

@@ -8,8 +8,16 @@ contract SubOverflow {
 
         // Write assembly code that handles overflows        
         assembly {                        
-         
+         function getDiff(a,b) => diff {
+            let diff := sub(a,b)
+            if gt(diff , x) {
+                diff := 0
+         }
         }
+         let differance := getDiff(x,y)
+         mstore(0x0, differance)
+         return(0x0, 32)
+         
     }    
 }
 
