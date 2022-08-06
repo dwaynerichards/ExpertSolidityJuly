@@ -13,7 +13,14 @@ contract Intro {
 
             // instainate stack variable that holds value of mol            
             
-
+            //how would you load value of mol
+            let stackVar := sload(mol.slot)
+            mstore(
+                //store at free memory pointer
+                0x0,
+                stackVar
+            )
+            return(mload(0x0), 16)
             // To return it needs to be stored in memory
             // with command mstore(MEMORY_LOCATION, STACK_VARIABLE)
             
