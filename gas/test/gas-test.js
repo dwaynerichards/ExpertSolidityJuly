@@ -69,6 +69,7 @@ describe("Gas1", function () {
     await updateTx.wait();
     // now need to check the update
     const Payments = await gasContract.getPayments(owner.address);
+    console.log("payments:", Payments);
 
     expect(Payments.length).to.equal(5);
     expect(Payments[0].amount).to.equal(302);
