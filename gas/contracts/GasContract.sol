@@ -1,11 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.4;
 
-import "@openzeppelin/contracts/access/AccessControl.sol";
+import "./access/AccessControl.sol";
 
-//deploy, transfer, update payment -> gas optimize each
-
-    /**
+/**
  * uint256 is 32 bytes
 uint128 is 16 bytes
 uint64 is 8 bytes
@@ -24,29 +22,15 @@ contract GasContract is AccessControl {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         totalSupply = _totalSupply;
         balances[msg.sender] = _totalSupply;
-        emit supplyChanged(msg.sender, _totalSupply);
-        administrators = _admins;
 
         for (uint256 i = 0; i < _admins.length; i++) {
             require(_admins[i] != address(0), "Error-Admin-1");
             grantRole(ADMIN, _admins[i]);
-            emit supplyChanged(_admins[i], 0);
         }
     }
 
-    uint256 immutable public totalSupply; // cannot be updated
-    
-    address[5] public administrators;
-
-    uint256 public constant tradeFlag = 1;
-    uint256 public constant basicFlag = 0;
-    uint256 public constant dividendFlag = 1;
-    uint256 public constant tradePercent = 12;
-    uint256 public constant tradeMode = 0;
-
+    uint256 public immutable totalSupply; // cannot be updated
     uint256 public paymentCounter = 0;
-
-    bool wasLastOdd = true;
 
     mapping(address => mapping(uint256 => Payment)) public payments;
     mapping(address => uint256) public balances;
@@ -62,9 +46,7 @@ contract GasContract is AccessControl {
         Refund,
         Dividend,
         GroupPayment
-    }
-    PaymentType defaultPayment = PaymentType.Unknown;
-
+    
     struct Payment {
         uint256 paymentID;
         uint256 amount;
@@ -81,9 +63,7 @@ contract GasContract is AccessControl {
         uint32 valueB; // max 3 digits
     }
 
-
     error NotWhiteListed(address);
-
 
     function _checkIfWhiteListed() internal view {
         if (whitelist[msg.sender] > 0 && whitelist[msg.sender] < 4) {
@@ -92,7 +72,6 @@ contract GasContract is AccessControl {
     }
 
     event AddedToWhitelist(address indexed userAddress, uint256 tier);
-    event supplyChanged(address indexed indexed, uint256 indexed);
     event Transfer(address indexed recipient, uint256 indexed amount);
     event PaymentUpdated(
         address indexed admin,
@@ -112,23 +91,16 @@ contract GasContract is AccessControl {
         return balances[_user];
     }
 
-    function getTradingMode() public pure returns (bool) {
-        if (tradeFlag == 1 || dividendFlag == 1) {
-            return true;
-        }
-        return false;
-    }
-
     function getPayments(address _user)
         external
         view
-        returns (Payment[] memory )
+        returns (Payment[] memory)
     {
         require(_user != address(0), "EGP");
         //reconsruct into payment arr
         Payment[] memory _payments = new Payment[](paymentCounter);
-        for(uint i; i < paymentCounter; i++){
-           _payments[i] = payments[_user][i+1];
+        for (uint256 i; i < paymentCounter; i++) {
+            _payments[i] = payments[_user][i + 1];
         }
         return _payments;
     }
@@ -142,7 +114,6 @@ contract GasContract is AccessControl {
         string calldata _name
     ) public returns (bool status_) {
         require(balances[msg.sender] >= _amount, "ETG");
-        require(bytes(_name).length < 9, "ETN");
 
         balances[msg.sender] -= _amount;
         balances[_recipient] += _amount;
@@ -169,58 +140,47 @@ contract GasContract is AccessControl {
     ) public onlyRole(ADMIN) {
         require(_ID > 0, "EUID"); //"Gas Contract - Update Payment function - ID must be greater than 0"
         require(_amount > 0, "EUA"); //"Gas Contract - Update Payment function - Amount must be greater than 0"
-        Payment memory _payment = payments[_user][_ID];
+        Payment memory _payment = payments_S[_user][_ID];
 
         _payment.adminUpdated = true;
         _payment.admin = msg.sender;
         _payment.paymentType = _type;
         _payment.amount = _amount;
 
-        payments[_user][_ID] = _payment; //copying from mem to storage
+        payments[_user][_ID] = _payment_S; //copying from mem to storage
         //addHistory function removed because history is saved to logs
-        emit PaymentUpdated(
-            msg.sender,
-            _ID,
-            _amount,
-            _payment.recipientName
-        );
+        emit PaymentUpdated(msg.sender, _ID, _amount, _payment.recipientName);
     }
 
-            //"Gas Contract - addToWhitelist function -  tier level should not be greater than 255"
-    function addToWhitelist(address _userAddrs, uint256 _tier) external onlyRole(ADMIN) {
-        require(
-            _tier < 3 && _tier > 0,
-        "EAWLT"
-        );
+    //"Gas Contract - addToWhitelist function -  tier level should not be greater than 255"
+    function addToWhitelist(address _userAddrs, uint256 _tier)
+        external
+        onlyRole(ADMIN)
+    {
+        require(_tier < 3 && _tier > 0, "EAWLT");
         //allowable numbers for tier according to previous logic are 1& 2
         whitelist[_userAddrs] = _tier;
-            wasLastOdd = !wasLastOdd;
-            isOddWhitelistUser[_userAddrs] = wasLastOdd;
+        wasLastOdd = !wasLastOdd;
+        isOddWhitelistUser[_userAddrs] = wasLastOdd;
         emit AddedToWhitelist(_userAddrs, _tier);
     }
-            //"Gas Contract - whiteTransfers function - Sender has insufficient Balance"
-            //"Gas Contract - whiteTransfers function - amount to send have to be bigger than 3"
+
+    //"Gas Contract - whiteTransfers function - Sender has insufficient Balance"
+    //"Gas Contract - whiteTransfers function - amount to send have to be bigger than 3"
     function whiteTransfer(
         address _recipient,
         uint256 _amount,
         ImportantStruct memory _struct
     ) public {
         _checkIfWhiteListed();
-        uint msgSenderBalance = balances[msg.sender] ;
-        uint recipientBalance = balances[_recipient] ;
-        uint whitelistBalance = whitelist[msg.sender];
-        require(
-            msgSenderBalance  >= _amount,
-            "EWTB"
-        );
-        require(
-            _amount > 3,
-            "EWTA"
-        );
-        msgSenderBalance -= _amount;
-        msgSenderBalance += whitelistBalance;
-        recipientBalance += _amount;
-        recipientBalance -= whitelistBalance;
+        uint256 msgSenderBalance = balances[msg.sender];
+        uint256 recipientBalance = balances[_recipient];
+        uint256 whitelistBalance = whitelist[msg.sender];
+        require(msgSenderBalance >= _amount, "EWTB");
+        require(_amount > 3, "EWTA");
+
+        msgSenderBalance = msgSenderBalance + whitelistBalance - _amount;
+        recipientBalance = recipientBalance + _amount - whitelistBalance;
         //balances[msg.sender] -= _amount;
         //balances[_recipient] += _amount;
         //balances[msg.sender] += whitelist[msg.sender];
