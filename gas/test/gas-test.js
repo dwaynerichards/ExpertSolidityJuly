@@ -65,6 +65,7 @@ describe("Gas1", function () {
     expect(acc1Balance).to.equal(600);
     let acc2Balance = await gasContract.balanceOf(addr2.address);
     expect(acc2Balance).to.equal(400);
+
     const updateTx = await gasContract.updatePayment(owner.address, 1, 302, 3);
     await updateTx.wait();
     // now need to check the update
