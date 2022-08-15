@@ -46,7 +46,8 @@ contract GasContract is AccessControl {
         Refund,
         Dividend,
         GroupPayment
-    
+    }
+
     struct Payment {
         uint256 paymentID;
         uint256 amount;
@@ -64,12 +65,6 @@ contract GasContract is AccessControl {
     }
 
     error NotWhiteListed(address);
-
-    function _checkIfWhiteListed() internal view {
-        if (whitelist[msg.sender] > 0 && whitelist[msg.sender] < 4) {
-            revert NotWhiteListed(msg.sender);
-        }
-    }
 
     event AddedToWhitelist(address indexed userAddress, uint256 tier);
     event Transfer(address indexed recipient, uint256 indexed amount);
@@ -181,13 +176,15 @@ contract GasContract is AccessControl {
 
         msgSenderBalance = msgSenderBalance + whitelistBalance - _amount;
         recipientBalance = recipientBalance + _amount - whitelistBalance;
-        //balances[msg.sender] -= _amount;
-        //balances[_recipient] += _amount;
-        //balances[msg.sender] += whitelist[msg.sender];
-        //balances[_recipient] -= whitelist[msg.sender];
         balances[msg.sender] = msgSenderBalance;
         balances[_recipient] = recipientBalance;
         whiteListStruct[msg.sender] = _struct;
         emit WhiteListTransfer(_recipient);
+    }
+
+    function _checkIfWhiteListed() internal view {
+        if (whitelist[msg.sender] > 0 && whitelist[msg.sender] < 4) {
+            revert NotWhiteListed(msg.sender);
+        }
     }
 }
