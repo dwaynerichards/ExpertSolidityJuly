@@ -6,45 +6,40 @@ import "./Token.sol";
 
 contract DeFi1 {
     uint256 initialAmount = 0;
-    address[] public investors;
-    uint256 blockReward = 0;
+    uint256 numInvestors;
+    mapping(address => bool) investors;
+    uint256 rewardRate;
+    uint256 blockNumber;
     Token public token;
 
-    constructor(uint256 _initialAmount, uint256 _blockReward) {
+    constructor(uint256 _initialAmount, uint256 _rewardRate) {
         initialAmount = initialAmount;
         token = new Token(_initialAmount);
-        blockReward = _blockReward;
-    }
-
-    function addInvestor(address _investor) public {
-        investors.push(_investor);
+        blockNumber = block.number;
+        rewardRate = _rewardRate;
     }
 
     function claimTokens() public {
-        bool found = false;
-        uint256 payout = 0;
-
-        for (uint256 ii = 0; ii < investors.length; ii++) {
-            if (investors[ii] == msg.sender) {
-                found = true;
-            } else {
-                found = false;
-            }
-        }
-        if (found == true) {
-            calculatePayout();
-        }
-
-        token.transfer(msg.sender, payout);
+        require(investors[msg.sender], "notInvestor");
+        token.transfer(msg.sender, _calculatePayout());
     }
 
-    function calculatePayout() public returns (uint256) {
-        uint256 payout = 0;
-        uint256 blockReward = blockReward;
-        blockReward = block.number % 1000;
-        payout = initialAmount / investors.length;
-        payout = payout * blockReward;
-        blockReward--;
-        return payout;
+    /**
+@dev function reduces blockNum storageVar every 1000 blocks
+@return uint256 payout to investors
+ */
+    function _calculatePayout() internal returns (uint256) {
+        if (block.number >= block.number + 1000) {
+            blockNumber = block.number;
+            rewardRate - 100;
+        }
+        uint256 blockReward = block.number % rewardRate;
+        return (initialAmount / numInvestors) * blockReward;
+    }
+
+    function addInvestor(address _investor) public {
+        require(!investors[_investor], "alreadyInvestor");
+        investors[_investor] = true;
+        numInvestors++;
     }
 }
