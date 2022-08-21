@@ -302,8 +302,8 @@
       }
     },
     "src/DeFi1.sol": {
-      "lastModificationDate": 1660864451878,
-      "contentHash": "3b86f3e71c0885b7ca3b1acc1b3c9144",
+      "lastModificationDate": 1661104400362,
+      "contentHash": "e5288d2eaf8395eee04eef6320fac66e",
       "sourceName": "src/DeFi1.sol",
       "solcConfig": {
         "settings": {
@@ -332,6 +332,7 @@
         }
       },
       "imports": [
+        "lib/forge-std/src/console2.sol",
         "src/Token.sol"
       ],
       "versionRequirement": "^0.8.13",
@@ -380,8 +381,8 @@
       }
     },
     "test/Contract.t.sol": {
-      "lastModificationDate": 1660866180733,
-      "contentHash": "f28a7138038fc0b2599fae39078103b6",
+      "lastModificationDate": 1661109094122,
+      "contentHash": "91fd604f81afd4f37204889798b0b6c2",
       "sourceName": "test/Contract.t.sol",
       "solcConfig": {
         "settings": {

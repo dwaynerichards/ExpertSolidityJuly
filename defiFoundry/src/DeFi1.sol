@@ -2,20 +2,21 @@
 pragma solidity ^0.8.13;
 
 import "./Token.sol";
+import "forge-std/console2.sol";
 
 contract DeFi1 {
     uint256 public immutable initialAmount;
     uint256 public numInvestors;
-    uint256 public rewardRate;
+    uint256 public blockReward;
     uint256 public blockNumber;
     mapping(address => bool) public investors;
     Token public immutable token;
 
-    constructor(uint256 _initialAmount, uint256 _rewardRate) {
+    constructor(uint256 _initialAmount, uint256 _blockReward) {
         initialAmount = _initialAmount;
         token = new Token(_initialAmount);
         blockNumber = block.number;
-        rewardRate = _rewardRate;
+        blockReward = _blockReward;
     }
 
     function claimTokens() public {
@@ -25,26 +26,21 @@ contract DeFi1 {
     }
 
     /**
-@dev function reduces blockNum storageVar every 1000 blocks
-@return uint256 payout to investors
+@dev function updates blockNumber and calculates payout
+@return uint256 payout to investors based on number of investors and reward rate
  */
     function _calculatePayout() internal returns (uint256) {
         uint256 blockDiff = block.number - blockNumber;
-        if (blockDiff > 1000) {
-            (blockNumber, rewardRate) = _calculateRate(blockDiff);
-        }
-        uint256 blockReward = block.number % rewardRate;
-        return (initialAmount / numInvestors) * blockReward;
+        console2.log("BlockNumber=====>");
+        console2.logUint(block.number);
+        uint256 _blockReward = _calculateReward(blockDiff);
+        blockNumber = block.number;
+        blockReward = _blockReward;
+        return (initialAmount / numInvestors) * _blockReward;
     }
 
-    function _calculateRate(uint256 _blockDiff)
-        internal
-        view
-        returns (uint256 _blockNum, uint256 _rewardRate)
-    {
-        uint256 rate = _blockDiff / 1000;
-        uint256 rewardDeduction = rate * 100;
-        return (block.number, (rewardRate - rewardDeduction));
+    function _calculateReward(uint256 _diff) internal view returns (uint256) {
+        return ((block.number / 1000) - _diff);
     }
 
     function addInvestor(address _investor) public {

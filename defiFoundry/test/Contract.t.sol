@@ -6,6 +6,7 @@ import "forge-std/Test.sol";
 import "forge-std/console.sol";
 import "../src/DeFi1.sol";
 import "../src/Token.sol";
+import "forge-std/console2.sol";
 
 contract User {
     receive() external payable {}
@@ -18,14 +19,25 @@ contract ContractTest is Test {
     User internal bob;
     User internal chloe;
     uint256 initialAmount = 1000;
-    uint256 blockRewardRate = 1000;
+    uint256 blockReward= 1000;
 
     function setUp() public {
-        defi = new DeFi1(initialAmount, blockRewardRate);
+_setCurrentBlock();
+        defi = new DeFi1(initialAmount, blockReward);
         token = Token(defi.token.address);
         alice = new User();
         bob = new User();
         chloe = new User();
+    }
+    function _setCurrentBlock() internal {
+        string memory MAINNET =  vm.rpcUrl("mainnet");
+        vm.createSelectFork(MAINNET);
+        assertTrue(block.number > 15000000);
+    }
+
+    function canReadEndpoint() external {
+        string memory url = vm.rpcUrl("mainnet");
+        assertEq(url, "https://eth-mainnet.g.alchemy.com/v2/Igv4mP6opRr8JkHDqJs7IaHCkbdoFL9O");
     }
 
 ///functions prefixed with testFail should revert, or it will fail
@@ -33,13 +45,13 @@ contract ContractTest is Test {
        assert(initialAmount == defi.initialAmount());
     }
     function testInitRewardRate() public view {
-       assert(blockRewardRate == defi.rewardRate());
+       assert(blockReward== defi.blockReward());
     }
     function testFailInitialBalance() public view {
        assert(initialAmount + 1 == defi.initialAmount());
     }
     function testFailInitRewardRate() public view {
-       assert(blockRewardRate +1 == defi.rewardRate());
+       assert(blockReward+1 == defi.blockReward());
     }
     function testInitNumInvestors() public view {
         assert(defi.numInvestors() == 0);
@@ -58,25 +70,42 @@ contract ContractTest is Test {
         assert(defi.investors(address(alice)) == false);
         assert(defi.numInvestors() == 0);
     }
-
+/**
+ When testing make sure you know
+how would you advance blocks
+how would you make sure every block will work
+how would you make sure the contract works with different starting values such
+as
+block reward,
+numbers of investors
+initial number of tokens Try to find all the bugs / security problems*/
     function testCanClaim() public {
+        console2.log("in test");
+        ///create and select fork, returns a fork Id
+        ///verify ID/ blocknumner
         defi.addInvestor(address(alice));
         defi.addInvestor(address(bob));
+        _advanceBlocks(1);
         vm.prank(address(alice));//alice = msg.sender
-        vm.roll(1);//blocknumer setto 1
         defi.claimTokens();
     }
     function testCannotClaim() public {
-        vm.expectRevert(bytes("notInvestor"));
         defi.addInvestor(address(alice));
         defi.addInvestor(address(bob));
+        _advanceBlocks(1);
+        vm.expectRevert(bytes("notInvestor"));
         vm.prank(address(chloe));//alice = msg.sender
-        vm.roll(1);//blocknumer setto 1
         defi.claimTokens();
+    }
+    
+    function _advanceBlocks(uint num) internal{
+        vm.roll(defi.blockNumber() + num);
     }
 
 
     function testCorrectPayoutAmount() public {
+        defi.addInvestor(address(alice));
+        _advanceBlocks(1000);
 
     }
 
