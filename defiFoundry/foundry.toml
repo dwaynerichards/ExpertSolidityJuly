@@ -3,4 +3,14 @@ src = 'src'
 out = 'out'
 libs = ['lib']
 
+[profile.dwayne]
+solc = "0.8.13"
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config
+[rpc_endpoints]
+#This section lives outside of profiles and defines a table of RPC endpoints, where the key specifies the RPC endpoints's name and the value is the RPC endpoint itself.
+mainnet = "${ALCHEMY_ENDPOINT_MAINNET}"
+#The value can either be a valid RPC endpoint or a reference to an environment variable (wrapped with in ${}).
+
+#These RPC endpoints can be used in tests and Solidity scripts (see vm.rpc).
+
+#

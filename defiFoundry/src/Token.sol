@@ -10,7 +10,7 @@ contract Token {
 
     address public owner;
 
-    mapping(address => uint256) balances;
+    mapping(address => uint256) public balances;
 
     event Transfer(address indexed _from, address indexed _to, uint256 _value);
 
@@ -18,7 +18,7 @@ contract Token {
      * Contract initialization.
      */
     constructor(uint256 _totalSupply) {
-        totalSupply = _totalSupply;
+        totalSupply = _totalSupply * (10**18);
         balances[msg.sender] = totalSupply;
         owner = msg.sender;
     }
@@ -29,7 +29,12 @@ contract Token {
      * The `external` modifier makes a function *only* callable from *outside*
      * the contract.
      */
-    function transfer(address to, uint256 amount) external {
+    modifier onlyOwner() {
+        require(msg.sender == owner, "notOwner");
+        _;
+    }
+
+    function transfer(address to, uint256 amount) external onlyOwner {
         require(balances[msg.sender] >= amount, "Not enough tokens");
 
         // Transfer the amount.
