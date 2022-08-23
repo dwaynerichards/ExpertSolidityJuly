@@ -302,8 +302,8 @@
       }
     },
     "src/DeFi1.sol": {
-      "lastModificationDate": 1661104400362,
-      "contentHash": "e5288d2eaf8395eee04eef6320fac66e",
+      "lastModificationDate": 1661283705687,
+      "contentHash": "9b8876f937e95126bf8fac5f990a62c7",
       "sourceName": "src/DeFi1.sol",
       "solcConfig": {
         "settings": {
@@ -343,8 +343,8 @@
       }
     },
     "src/Token.sol": {
-      "lastModificationDate": 1660659850694,
-      "contentHash": "a0589bd68452396a368cb26a422fe2e0",
+      "lastModificationDate": 1661191603338,
+      "contentHash": "0cf2fa08b50e1551d6d2ed68f6f99e20",
       "sourceName": "src/Token.sol",
       "solcConfig": {
         "settings": {
@@ -381,8 +381,8 @@
       }
     },
     "test/Contract.t.sol": {
-      "lastModificationDate": 1661109094122,
-      "contentHash": "91fd604f81afd4f37204889798b0b6c2",
+      "lastModificationDate": 1661284109406,
+      "contentHash": "ef2ebdf1fd36a990e221d9a75ab7ced0",
       "sourceName": "test/Contract.t.sol",
       "solcConfig": {
         "settings": {

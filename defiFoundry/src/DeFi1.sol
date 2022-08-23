@@ -9,20 +9,26 @@ contract DeFi1 {
     uint256 public numInvestors;
     uint256 public blockReward;
     uint256 public blockNumber;
-    mapping(address => bool) public investors;
-    Token public immutable token;
-
-    constructor(uint256 _initialAmount, uint256 _blockReward) {
-        initialAmount = _initialAmount;
-        token = new Token(_initialAmount);
-        blockNumber = block.number;
-        blockReward = _blockReward;
+    mapping(address => blockDetails) public investors;
+    Token public token;
+    struct blockDetails {
+        bool isInvestor;
+        uint256 blockPaid;
     }
 
-    function claimTokens() public {
-        require(investors[msg.sender], "notInvestor");
-        require(block.number > blockNumber, "tooSoon");
-        token.transfer(msg.sender, _calculatePayout());
+    constructor(uint256 _initialAmount, uint256 _blockReward) {
+        blockNumber = block.number;
+        initialAmount = _initialAmount;
+        blockReward = _blockReward;
+        ///initalAmount updated in Token contract to 10**18
+        token = new Token(_initialAmount);
+    }
+
+    function claimTokens() public returns (uint256 payout) {
+        require(_isInvestor(msg.sender), "notInvestor");
+        require(block.number > _blockPaid(msg.sender), "tooSoon");
+        payout = _calculatePayout();
+        token.transfer(msg.sender, payout);
     }
 
     /**
@@ -31,21 +37,37 @@ contract DeFi1 {
  */
     function _calculatePayout() internal returns (uint256) {
         uint256 blockDiff = block.number - blockNumber;
-        console2.log("BlockNumber=====>");
-        console2.logUint(block.number);
-        uint256 _blockReward = _calculateReward(blockDiff);
-        blockNumber = block.number;
-        blockReward = _blockReward;
-        return (initialAmount / numInvestors) * _blockReward;
+        investors[msg.sender].blockPaid = blockNumber = block.number;
+        blockReward = _calculateReward(blockDiff);
+        //console2.log("init amount, numInvest", initialAmount, numInvestors);
+        //console2.log("payout", (blockReward));
+        return blockReward;
     }
 
     function _calculateReward(uint256 _diff) internal view returns (uint256) {
-        return ((block.number / 1000) - _diff);
+        console2.log(
+            "reward",
+            (initialAmount * (block.number / 1000)) / numInvestors - _diff
+        );
+        return ((initialAmount * (block.number / 1000)) / numInvestors) - _diff;
     }
 
     function addInvestor(address _investor) public {
-        require(!investors[_investor], "alreadyInvestor");
-        investors[_investor] = true;
+        require(!_isInvestor(_investor), "alreadyInvestor");
+        require(numInvestors < initialAmount, "maxInvestors");
+        investors[_investor].isInvestor = true;
         numInvestors++;
+    }
+
+    function isInvestor(address _investor) external view returns (bool) {
+        return _isInvestor(_investor);
+    }
+
+    function _isInvestor(address _investor) internal view returns (bool) {
+        return investors[_investor].isInvestor;
+    }
+
+    function _blockPaid(address _investor) internal view returns (uint256) {
+        return investors[_investor].blockPaid;
     }
 }
