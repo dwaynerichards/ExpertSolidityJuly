@@ -71,6 +71,8 @@ interface IpmtSplitter {
      */
     function release(IERC20 token, address account) external;
 
+    function release(uint256 token, address account) external;
+
     /**
      * @dev internal logic for computing the pending payment of an `account` given the token historical balances and
      * already released amounts.
